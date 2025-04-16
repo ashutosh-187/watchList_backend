@@ -1,0 +1,4 @@
+__pycache__
+.env
+access_token.json
+myenv
