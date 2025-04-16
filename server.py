@@ -16,7 +16,7 @@ redis_server_connection = connect_with_redis_server()
 
 @app.route("/watch_list/add_instrument")
 def add_instrument():
-    instrument_string = request.args.get("instrument")
+    instrument_string = request.args.get("instrument").upper()
     response = add_instruments_to_watch_list(instrument_string, database_collection, redis_server_connection)
     if len(response) == 1:
         response = add_instruments_to_watch_list(instrument_string, database_collection, redis_server_connection)
@@ -27,10 +27,10 @@ def watch_list():
     response = get_watch_list(database_collection, redis_server_connection)
     return jsonify(response)
 
-@app.route("/watch_list/remove_instruments", methods=["POST"])
+@app.route("/watch_list/remove_instrument")
 def remove_instrument():
-    data = request.json
-    response = remove_instruments_to_watch_list(data, database_collection, redis_server_connection)
+    instrument_string = request.args.get("instrument").upper()
+    response = remove_instruments_to_watch_list(instrument_string, database_collection, redis_server_connection)
     return jsonify(response)
 
 

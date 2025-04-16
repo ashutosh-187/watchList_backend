@@ -9,7 +9,7 @@ from time import sleep
 
 
 def add_instruments_to_watch_list(search_instrument, collection, redis_connection): 
-    searched_instrument_details = search(search_instrument.upper())
+    searched_instrument_details = search(search_instrument)
     segment = searched_instrument_details.get("segment_id")
     instrument = searched_instrument_details.get("instrument_id")
     subscription_list = [
@@ -23,6 +23,7 @@ def add_instruments_to_watch_list(search_instrument, collection, redis_connectio
     data = get_redis_hash(redis_key, redis_connection)
     if len(data) == 0:
         sleep(6)
+        redis_key = f"{segment}_{instrument}"
     data["name"] = search_instrument
     if not data:
         return {
@@ -53,25 +54,20 @@ def get_watch_list(collection, redis_collection):
     return watch_list
 
 def remove_instruments_to_watch_list(search_instrument, collection, redis_connection): 
-    removed_instruments = []
-    for instrument in search_instrument:
-        name = instrument.get("name")
-        name = name.replace(" ", "")
-        result = collection.find_one(
-            {
-                "name": name
-            }
-        )
-        segment_id = result.get('segment_id')
-        collection.delete_one(
-            {
-            "name": name,
-            "segment_id": segment_id
-            }
-        )
-        redis_connection.delete(segment_id)
-        removed_instruments.append(instrument)
-    return {"status": "removed", "instruments": removed_instruments}
+    result = collection.find_one(
+        {
+            "name": search_instrument
+        }
+    )
+    segment_id = result.get('segment_id')
+    collection.delete_one(
+        {
+        "name": search_instrument,
+        "segment_id": segment_id
+        }
+    )
+    redis_connection.delete(segment_id)
+    return {"status": "removed", "instruments": search_instrument}
 
 if __name__ == "__main__":
     add_instruments_to_watch_list("swiggy")
