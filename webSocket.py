@@ -14,7 +14,10 @@ from time import sleep
 
 load_dotenv()
 
-sio = socketio.Client()
+sio = socketio.Client(
+    reconnection=True,
+    reconnection_attempts=0
+)
 
 def web_socket():
     token = generate_access_token()
@@ -68,7 +71,6 @@ def web_socket():
                 "percentage_change": round(float(percentage_change), 6)
             }
             print(web_socket_data)
-            sleep(6)
             set_redis_hash(segment, market_data, redis_connection)
 
     sio.connect(

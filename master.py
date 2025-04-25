@@ -6,9 +6,14 @@ from dotenv import load_dotenv
 from get_access_token import (
     load_access_token
 )
-from database import connect_with_database
+from database import (
+    connect_with_database,
+    connect_with_master_database
+)
 
 load_dotenv()
+
+master_connection = connect_with_master_database()
 
 fno_header = 'ExchangeSegment|ExchangeInstrumentID|InstrumentType|Name|Description|Series|NameWithSeries|InstrumentID|PriceBand.High|PriceBand.Low|FreezeQty|TickSize|LotSize|Multiplier|UnderlyingInstrumentId|UnderlyingIndexName|ContractExpiration|StrikePrice|OptionType|DisplayName|PriceNumerator|PriceDenominator|DetailedDescription'.split('|')
 eq_header = 'ExchangeSegment|ExchangeInstrumentID|InstrumentType|Name|Description|Series|NameWithSeries|InstrumentID|PriceBand.High|PriceBand.Low|FreezeQty|TickSize|LotSize|Multiplier|DisplayName|ISIN|PriceNumerator|PriceDenominator|DetailedDescription'.split('|')
@@ -30,17 +35,13 @@ def parse_fno_data(json_string):
 
 def master_call():
     token = load_access_token()
-    collection = connect_with_database()
-    # exchange_segments = {
-    #     "exchangeSegmentList": ["NSEFO", "BSEFO"]
-    # }
     exchange_segments = {
-        "exchangeSegmentList": ["NSEFO", "BSEFO"]
+        "exchangeSegmentList": ["NSEFO", "BSEFO", "MCXFO", "NSECM", "BSECM"]
     }
     master_url = os.getenv("xts_url")+"/instruments/master"
     master_response = requests.post(master_url, json=exchange_segments)
     master_dict = parse_fno_data(master_response.text)
-    collection.insert_many(master_dict)
+    master_connection.insert_many(master_dict)
     print("master data saved in database :)")
 
 # def find_latest_expiry():
